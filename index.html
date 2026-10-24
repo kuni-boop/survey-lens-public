@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Survey Lens | アンケート分析</title><style>:root {
+  --ink:#192f3b; --muted:#566b76; --accent:#08776c; --accent-soft:#e8f4ef;
+  --line:#dce6e3; --surface:#fff; --bg:#f3f6f5; --warning:#785019;
+}
+* { box-sizing:border-box; }
+html { scroll-padding-top:100px; }
+body { margin:0; color:var(--ink); background:var(--bg); font:15px/1.75 system-ui,-apple-system,'Segoe UI',sans-serif; }
+header { background:#122f35; color:white; display:flex; justify-content:space-between; align-items:center; padding:18px max(24px,calc((100vw - 1200px)/2)); }
+.brand { font-size:24px; font-weight:750; letter-spacing:-1px; }
+.brand span { color:#7cddd0; }
+.privacy { font-size:12px; color:#b8e3da; }
+main { max-width:1248px; margin:auto; padding:32px 24px; }
+h1 { font-size:clamp(26px,4vw,38px); line-height:1.4; letter-spacing:-.04em; margin:6px 0 12px; }
+h2 { font-size:25px; margin:0 0 14px; line-height:1.5; }
+h3 { font-size:17px; margin:0 0 12px; line-height:1.6; }
+p { margin:8px 0 16px; }
+a { color:var(--accent); text-underline-offset:3px; }
+button,select,input { font:inherit; }
+button,a,select,input,summary { touch-action:manipulation; }
+button { cursor:pointer; border:1px solid transparent; border-radius:8px; padding:10px 16px; font-weight:650; min-height:44px; }
+button:hover,.picker-button:hover { filter:brightness(.95); }
+:focus-visible { outline:3px solid #c77d11; outline-offset:3px; }
+:where(h2,h3,#empty-title,#error) { scroll-margin-top:110px; }
+.primary { background:var(--accent); color:white; }
+.secondary { background:white; border:1px solid #cbd9d5; color:var(--ink); }
+select,input[type=text] { width:100%; min-width:0; min-height:44px; background:white; border:1px solid #a8bcb5; border-radius:6px; padding:8px 10px; color:var(--ink); }
+label { display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; }
+[hidden] { display:none!important; }
+.visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.skip-link { position:fixed; top:12px; transform:translateY(-200%); opacity:0; pointer-events:none; left:16px; z-index:50; background:white; color:var(--ink); padding:12px 18px; border-radius:6px; }
+.skip-link:focus { transform:none; opacity:1; pointer-events:auto; }
+.intro { margin:8px 0 28px; }
+.intro>p:last-child { color:var(--muted); }
+.has-data .intro { margin:0 0 20px; }
+.has-data h1 { font-size:28px; }
+.has-data #intro-description { display:none; }
+.eyebrow { display:block; font-size:11px; letter-spacing:2px; color:var(--accent); font-weight:750; margin:0 0 5px; }
+nav { position:sticky; top:0; z-index:20; display:flex; gap:6px; background:var(--bg); border-bottom:1px solid var(--line); margin:0 -4px 24px; padding:10px 4px; }
+nav button { display:flex; flex:1; align-items:center; justify-content:center; gap:10px; padding:12px 8px; background:transparent; color:var(--muted); font-size:13px; white-space:nowrap; }
+nav button:hover { background:#e8eeeb; }
+nav button[aria-current] { background:var(--ink); color:white; box-shadow:0 3px 8px #173e3914; }
+.nav-number { font-size:11px; opacity:.7; font-variant-numeric:tabular-nums; }
+.nav-short { display:none; }
+.section-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:14px; }
+.section-heading h2,.section-heading h3 { margin-bottom:0; }
+.controls { display:flex; align-items:end; gap:12px; flex-wrap:wrap; }
+.card,.chart-card,.report-section { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:20px; min-width:0; }
+.hint { font-size:12px; color:var(--muted); }
+.workflow { list-style:none; display:grid; grid-template-columns:repeat(3,1fr); padding:0; margin:0 0 26px; background:white; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+.workflow li { display:flex; align-items:center; gap:12px; margin:0; padding:17px 20px; color:var(--muted); border-right:1px solid var(--line); }
+.workflow li:last-child { border:0; }
+.workflow strong { display:block; font-size:13px; }
+.workflow small { display:block; font-size:11px; }
+.step-number { display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--line); border-radius:50%; flex-shrink:0; font-size:12px; font-weight:700; }
+.workflow [aria-current] { background:var(--accent-soft); color:var(--accent); }
+.workflow [aria-current] .step-number { background:var(--accent); border-color:var(--accent); color:white; }
+.workflow .is-complete .step-number { color:var(--accent); background:var(--accent-soft); border-color:var(--accent-soft); }
+.source-settings { margin-bottom:20px; border:1px solid var(--line); border-radius:12px; background:white; }
+.source-settings>summary { cursor:pointer; padding:16px 20px; font-size:13px; }
+.source-settings>summary>span { display:block; padding-left:17px; font-size:12px; color:var(--muted); overflow-wrap:anywhere; }
+.source-settings[open]>summary { border-bottom:1px solid var(--line); }
+.source-body { padding:20px; }
+.source-body .card:last-child { margin-bottom:0; }
+.source-body .template-card { border-top:0; padding:0 0 20px; border-radius:0; border-width:0 0 1px; }
+.template-card { display:grid; grid-template-columns:1fr minmax(220px,300px); gap:0 30px; border-top:3px solid var(--accent); }
+.template-card h3 { font-size:19px; }
+.template-card p { margin-bottom:8px; }
+.template-card>label { align-self:center; }
+.template-card>.hint { grid-column:1/-1; }
+.upload { border:1px dashed #8eaea4; background:#fcfefd; padding:28px; position:relative; }
+.upload>p { max-width:750px; }
+.upload .controls { margin:20px 0 16px; }
+.upload .controls>label { width:230px; }
+.upload-icon { display:grid; place-items:center; width:40px; height:40px; margin-bottom:15px; color:var(--accent); background:#e9f3ef; border-radius:10px; font-size:25px; }
+.upload.drag-active { background:#e4f4eb; border:2px solid var(--accent); padding:27px; }
+.file-label { flex:1; min-width:220px; }
+.file-picker { display:inline-flex; position:relative; cursor:pointer; font-size:14px; }
+.file-picker:focus-within { outline:3px solid #c77d11; outline-offset:4px; border-radius:8px; }
+.picker-button { display:inline-flex; min-height:44px; align-items:center; justify-content:center; padding:9px 20px; border-radius:8px; }
+.file-meta { display:block; margin-top:7px; font-size:12px; color:var(--muted); overflow-wrap:anywhere; }
+.loaded-summary { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px 22px; border-radius:10px; background:#e6f1ec; border:1px solid #c8dfd3; margin-bottom:20px; }
+.loaded-summary strong { display:block; overflow-wrap:anywhere; }
+.loaded-summary>div { min-width:0; }
+.loaded-summary button { flex-shrink:0; }
+.mapping-summary { padding:11px 15px; border-radius:6px; color:#35634f; background:#edf5f0; font-size:13px; }
+.mapping-summary.has-conflict { color:var(--warning); background:#fff3da; }
+.mapping { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:18px 0; }
+.mapping-field { background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px; min-width:0; }
+.mapping-field-head { display:flex; gap:9px; align-items:center; margin-bottom:10px; }
+.mapping-field-head label { flex:1; font-size:13px; }
+.field-index { color:#72867e; font-size:11px; font-variant-numeric:tabular-nums; }
+.mapping-badge { flex-shrink:0; font-size:10px; color:var(--accent); background:var(--accent-soft); padding:2px 7px; border-radius:4px; }
+[data-status=missing] .mapping-badge { background:#f0f3f1; color:var(--muted); }
+[data-status=conflict] { border-color:#bd762b; }
+[data-status=conflict] .mapping-badge { background:#fff1d8; color:var(--warning); }
+.field-advanced { margin-top:8px; font-size:12px; color:var(--muted); }
+.field-advanced summary { cursor:pointer; padding:6px 0; min-height:32px; }
+.field-advanced label { font-size:12px; color:var(--ink); margin-top:12px; }
+.field-advanced[open] { border-top:1px solid var(--line); margin-top:14px; padding-top:6px; }
+.mapping-actions { display:flex; align-items:center; justify-content:space-between; gap:20px; background:white; border:1px solid #ccdbd4; box-shadow:0 6px 24px #173e3912; padding:16px 18px; border-radius:9px; }
+.mapping-actions strong { font-size:13px; }
+.mapping-actions p { margin:3px 0 0; }
+.mapping-actions button { flex-shrink:0; }
+.classification { background:#f4f7f6; padding:12px 18px; border-radius:8px; margin-bottom:20px; }
+.classification summary,.quality summary,.chart-data summary { cursor:pointer; font-weight:600; padding:5px 0; }
+.classification ul { font-size:12px; overflow-wrap:anywhere; }
+.table-wrap { overflow:auto; max-height:480px; }
+table { border-collapse:collapse; width:100%; font-size:13px; }
+th,td { text-align:left; border-bottom:1px solid var(--line); padding:10px 12px; vertical-align:top; overflow-wrap:anywhere; min-width:90px; }
+th { background:#eff5f3; color:#37514f; font-weight:650; position:sticky; top:0; }
+td { white-space:pre-wrap; }
+tbody tr:hover { background:#f7faf9; }
+.analysis-context { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; font-size:12px; color:var(--muted); }
+.context-template { color:var(--accent); font-weight:700; background:#e4eeeb; border-radius:5px; padding:4px 10px; }
+.scope-controls { margin:12px 0 22px; }
+.scope-controls label { max-width:300px; }
+.metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:18px 0; }
+.metric { background:white; padding:22px; border:1px solid var(--line); border-radius:10px; }
+.metric strong { display:block; font-size:clamp(22px,2.4vw,32px); color:var(--accent); line-height:1.5; font-variant-numeric:tabular-nums; }
+.metric span,.metric small { display:block; color:var(--muted); font-size:12px; }
+.metric span { margin-bottom:7px; }
+.metric small { margin-top:6px; }
+.chart-grid,.card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.chart-grid { margin-bottom:22px; }
+.chart-card { margin:0; }
+.chart-card h3 { margin-bottom:4px; }
+.chart-card .table-wrap { max-height:300px; margin-top:8px; }
+.bar-row { display:grid; grid-template-columns:minmax(95px,1fr) 2fr 100px; gap:12px; align-items:center; margin:16px 0; font-size:13px; }
+.bar-label { overflow-wrap:anywhere; }
+.track { height:10px; background:#eaf1ee; border-radius:10px; overflow:hidden; }
+.bar { height:100%; background:var(--accent); border-radius:10px; }
+.bar-number { text-align:right; font-size:12px; font-variant-numeric:tabular-nums; }
+.choice-badge { font-size:10px; color:#46695d; background:#edf5f0; border-radius:4px; padding:3px 7px; }
+.chart-data { border-top:1px solid var(--line); padding-top:10px; margin-top:20px; }
+.chart-data summary { font-size:12px; color:var(--muted); }
+.chart-data[open] summary { margin-bottom:12px; }
+.quality { padding:13px 22px; }
+.quality[open] summary { margin-bottom:18px; }
+.quality .table-wrap { margin-top:12px; }
+.quality-warning,.pending { padding:12px 16px; border-radius:6px; background:#fff3da; color:var(--warning); font-size:12px; overflow-wrap:anywhere; }
+.rule-note { padding:12px 16px; border-left:3px solid var(--accent); background:#e8f3ee; }
+.card-grid .card { margin:0 0 10px; }
+.evidence { font-size:12px; color:var(--accent); font-weight:600; }
+.report-section h3 { color:var(--accent); }
+ul { padding-left:22px; }
+li { margin:6px 0; }
+.comment { white-space:pre-wrap; border-bottom:1px solid var(--line); padding:12px 0; overflow-wrap:anywhere; }
+.comment small { display:block; color:var(--muted); }
+#notice:not(:empty) { padding:12px 16px; background:#e3f2e9; border-radius:7px; margin:0 0 18px; }
+#error { padding:14px 18px; border:1px solid #dbaca2; background:#fff0ed; color:#8b3027; margin-bottom:18px; border-radius:7px; }
+.no-data { padding:18px; color:var(--muted); text-align:center; background:#f7f9f8; border-radius:6px; }
+.empty-state { padding:48px 24px; text-align:center; }
+.empty-state p { color:var(--muted); }
+.empty-state .controls { justify-content:center; }
+.empty-symbol { display:grid; place-items:center; width:64px; height:64px; margin:0 auto 18px; font-size:32px; color:var(--accent); background:var(--accent-soft); border-radius:16px; }
+.log { margin-top:28px; color:var(--muted); font-size:12px; }
+.log summary { cursor:pointer; min-height:44px; padding:10px 0; }
+.text-button { background:none; color:var(--muted); padding:5px; font-size:12px; }
+footer { display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--line); margin-top:20px; padding-top:14px; color:var(--muted); font-size:12px; }
+@media(max-width:800px) {
+  .section-heading { align-items:start; flex-direction:column; }
+  .chart-grid,.card-grid { grid-template-columns:1fr; }
+  .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .template-card { grid-template-columns:1fr; gap:12px; }
+  .workflow li { padding:14px 12px; gap:8px; }
+  .workflow small { display:none; }
+}
+@media(max-width:600px) {
+  header { padding:14px 18px; flex-wrap:wrap; gap:6px; }
+  .brand { font-size:22px; }
+  .privacy { font-size:10px; }
+  main { padding:22px 16px; }
+  h2 { font-size:22px; }
+  .intro { margin-bottom:20px; }
+  .has-data h1 { font-size:23px; }
+  .has-data .intro { margin-bottom:10px; }
+  nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; padding:8px 0; margin:0 0 20px; }
+  nav button { min-width:0; min-height:60px; flex-direction:column; gap:0; font-size:12px; padding:6px 2px; border-radius:7px; }
+  .nav-long { display:none; }
+  .nav-short { display:block; }
+  .nav-number { font-size:10px; }
+  .workflow { margin-bottom:22px; }
+  .workflow li { flex-direction:column; gap:5px; padding:12px 5px; text-align:center; }
+  .workflow strong { font-size:11px; }
+  .step-number { width:26px; height:26px; }
+  .card,.chart-card { padding:18px; }
+  .source-body { padding:16px; }
+  .source-body .template-card { padding:0 0 16px; }
+  .source-settings>summary { padding:14px 16px; }
+  .controls { width:100%; align-items:stretch; }
+  .section-heading .controls { gap:8px; }
+  .section-heading .controls button { flex:1; font-size:12px; }
+  .upload { padding:22px 18px; }
+  .upload.drag-active { padding:21px 17px; }
+  .upload .controls>label { width:100%; }
+  .file-label { width:100%; min-width:0; }
+  .file-picker { width:100%; }
+  .picker-button { width:100%; }
+  .loaded-summary { align-items:stretch; flex-direction:column; padding:16px; gap:10px; }
+  .mapping { grid-template-columns:1fr; gap:10px; }
+  .mapping-field { padding:13px; }
+  .mapping-field-head label { font-size:12px; }
+  .mapping-actions { bottom:8px; flex-direction:column; align-items:stretch; gap:10px; padding:12px; }
+  .mapping-actions strong { display:none; }
+  .mapping-actions p { margin:0; font-size:11px; }
+  .mapping-actions .pending { padding:8px; }
+  .mapping-actions button { width:100%; }
+  .classification { padding:10px 12px; }
+  .metric { padding:16px; }
+  .metric strong { font-size:25px; }
+  .analysis-context { align-items:start; gap:7px; }
+  .bar-row { grid-template-columns:1.2fr 1fr 88px; gap:8px; font-size:12px; }
+  .bar-number { font-size:11px; }
+  .quality { padding:13px 16px; }
+  .quality summary { font-size:12px; }
+  .empty-state { padding:30px 18px; }
+  .empty-state .controls { flex-direction:column; }
+  footer { align-items:start; flex-direction:column; gap:3px; }
+}
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; } }
+@media print {
+  @page { size:A4; margin:16mm; }
+  body { background:white; font-size:11px; }
+  header,.intro,nav,.scope-controls,.section-heading button,.log,footer,#notice,#error,#empty,.analysis-context,.skip-link,.workflow,.mapping-actions { display:none!important; }
+  main { max-width:none; padding:0; }
+  .view { display:none!important; }
+  #view-report { display:block!important; }
+  .report-section { break-inside:avoid; border:0; border-bottom:1px solid #ccc; border-radius:0; padding:10px 0; margin:0; }
+  h2 { font-size:21px; }
+  h3 { font-size:14px; }
+  a { color:inherit; }
+  .section-heading { margin:0; }
+}
+</style></head>
+<body>
+<a class="skip-link" href="#main-content">メインコンテンツへ移動</a>
+<header><div class="brand">Survey <span>Lens</span></div><div class="privacy">● ブラウザ内で処理・外部送信なし</div></header>
+<main id="main-content" tabindex="-1">
+<div class="intro"><p class="eyebrow">SURVEY ANALYTICS / ローカル分析</p><h1>回答を、次の改善につなげる。</h1><p id="intro-description">アンケートの集計から課題と施策、報告まで。CSVを選んで、分析を始めましょう。</p></div>
+<nav aria-label="分析画面" id="nav"><button data-view="import" aria-label="CSV読み込み" aria-current="page"><span class="nav-number" aria-hidden="true">01</span><span class="nav-long" aria-hidden="true">CSV読み込み</span><span class="nav-short" aria-hidden="true">読込</span></button><button data-view="dashboard" aria-label="ダッシュボード"><span class="nav-number" aria-hidden="true">02</span><span class="nav-long" aria-hidden="true">ダッシュボード</span><span class="nav-short" aria-hidden="true">全体</span></button><button data-view="departments" aria-label="部門別分析"><span class="nav-number" aria-hidden="true">03</span><span class="nav-long" aria-hidden="true">部門別分析</span><span class="nav-short" aria-hidden="true">部門</span></button><button data-view="issues" aria-label="課題・施策"><span class="nav-number" aria-hidden="true">04</span><span class="nav-long" aria-hidden="true">課題・施策</span><span class="nav-short" aria-hidden="true">課題・施策</span></button><button data-view="report" aria-label="報告"><span class="nav-number" aria-hidden="true">05</span><span class="nav-long" aria-hidden="true">報告</span><span class="nav-short" aria-hidden="true">報告</span></button></nav>
+<div id="analysis-context" class="analysis-context" hidden></div>
+<div id="notice" role="status" aria-live="polite"></div><div id="error" role="alert" tabindex="-1" hidden></div>
+<section id="view-import" class="view" aria-labelledby="import-title">
+<ol class="workflow" aria-label="分析開始までの手順"><li id="step-upload" aria-current="step"><span class="step-number">1</span><div><strong>CSV読込</strong><small>調査の種類とファイルを選択</small></div></li><li id="step-mapping"><span class="step-number">2</span><div><strong>項目確認</strong><small>列の対応を確認</small></div></li><li id="step-analysis"><span class="step-number">3</span><div><strong>分析・報告</strong><small>集計から次の施策へ</small></div></li></ol>
+<div class="section-heading"><div><p class="eyebrow">GET STARTED</p><h2 id="import-title">CSVを読み込む</h2></div><button id="sample" class="secondary">架空サンプルで試す（24件）</button></div>
+<details id="source-settings" class="source-settings" open><summary><strong>調査・CSVの選択</strong><span id="source-caption">まずは調査の種類とファイルを選びます</span></summary><div class="source-body"><div class="template-card card"><div><p class="eyebrow">SURVEY TEMPLATE</p><h3>調査に合った指標を選ぶ</h3><p>設問の対応・回答分類・施策のルールを切り替えます。設定はこのページ内だけで保持します。</p></div><label>調査テンプレート<select id="template"><option value="ai">生成AIの社内活用状況</option><option value="training">研修アンケート</option><option value="employee">従業員調査</option></select></label><p id="template-description" class="hint"></p></div>
+<div id="drop-zone" class="upload card"><span class="upload-icon" aria-hidden="true">↑</span><h3>CSVを選択、またはここにドロップ</h3><p>ファイルは端末内で処理します。ページを閉じると読み込んだデータは消えます。</p><div class="controls"><label>文字コード<select id="encoding"><option value="auto">自動（UTF-8 → Shift_JIS）</option><option value="utf-8">UTF-8</option><option value="shift_jis">Shift_JIS</option></select></label><div class="file-label"><label class="file-picker"><input class="visually-hidden" type="file" id="file" accept=".csv,text/csv" aria-label="CSVファイルを選択" aria-describedby="file-meta"><span class="primary picker-button">CSVファイルを選択</span></label><span id="file-meta" class="file-meta" role="status">ファイル未選択</span></div></div><p class="hint">上限10MB・回答50,000件。先頭行は列名。複数選択は「;」「；」「|」「、」またはセル内改行で区切ります。カンマを含む値は引用符で囲んでください。</p><a id="sample-download" href="sample_survey.csv" download>サンプルCSVをダウンロード</a></div>
+</div></details>
+<div id="loaded-summary" class="loaded-summary" hidden><div><span class="eyebrow">CSV READY</span><strong id="loaded-file"></strong><span id="loaded-count" class="hint"></span></div><button id="review-mapping" class="secondary">項目の対応を確認 ↓</button></div>
+<div id="mapping-panel" class="card" hidden><div class="section-heading"><div><p class="eyebrow">STEP 02</p><h3 id="mapping-title" tabindex="-1">列と分析項目を対応付け</h3></div><button id="auto-map" class="secondary">列の対応を自動選択</button></div><p>分析項目ごとにCSVの列を選んでください。表示名や選択方式は各項目の「詳細設定」から変更できます。</p><div id="mapping-summary" class="mapping-summary" role="status"></div><div id="mapping" class="mapping"></div><details class="classification"><summary>回答の分類ルールを確認</summary><div id="classification-rules"></div><p class="hint">表示名を変更しても分類・施策ルールの意味は変わりません。設問に合うテンプレートを選んでください。未登録の回答は推測せず判定不能にします。</p></details><div class="mapping-actions"><div><strong>対応を確認したら、集計へ</strong><p id="mapping-status" class="hint"></p></div><button id="apply" class="primary">この対応で集計する <span aria-hidden="true">→</span></button></div></div>
+<div id="preview-panel" class="card" hidden><h3>データプレビュー</h3><p id="preview-info" class="hint"></p><div id="preview" class="table-wrap" tabindex="0" role="region" aria-label="CSVプレビュー"></div></div>
+</section>
+<section id="view-dashboard" class="view" aria-labelledby="dashboard-title" hidden><div class="section-heading"><div><p class="eyebrow">OVERVIEW</p><h2 id="dashboard-title">ダッシュボード</h2></div><div class="controls"><button class="secondary" data-go="import">項目設定を見直す</button><button class="primary" data-go="issues">課題・施策を見る →</button></div></div><div class="scope-controls"></div><div id="metrics" class="metrics"></div><p id="denominator-note" class="hint">割合の分母は各項目の有効回答者数です。</p><details class="card quality"><summary id="quality-summary">データ品質・集計条件を確認</summary><div id="quality-body"></div></details><div id="charts" class="chart-grid"></div></section>
+<section id="view-departments" class="view" aria-labelledby="departments-title" hidden><p class="eyebrow">COMPARE</p><h2 id="departments-title">部門別分析</h2><p>部門ごとの回答者内の傾向です。母集団の構成や回答数が異なるため、単純な優劣を示すものではありません。</p><div id="department-comparison" class="card"></div><div class="scope-controls"></div><div id="department-details" class="chart-grid"></div></section>
+<section id="view-issues" class="view" aria-labelledby="issues-title" hidden><p class="eyebrow">FINDINGS & ACTIONS</p><h2 id="issues-title">課題と改善施策</h2><p class="rule-note">ルールベースの整理です。選択肢の件数・キーワードを使っており、生成AIによる文章分析や因果関係の証明ではありません。</p><div class="scope-controls"></div><h3 id="findings-heading">課題・希望・支援ニーズ（各上位3項目）</h3><div id="findings" class="card-grid"></div><h3>施策候補</h3><div id="actions" class="card-grid"></div><h3>優先して追加調査する事項</h3><div id="followups" class="card"></div><h3>部門別に目立つ項目</h3><div id="department-findings" class="card-grid"></div><h3>自由記述（一覧表示）</h3><p class="hint">入力内容をそのまま表示します。個人情報の扱いに注意してください。自動的な感情判定は行いません。</p><div id="comments" class="card"></div></section>
+<section id="view-report" class="view" aria-labelledby="report-title" hidden><div class="section-heading"><div><p class="eyebrow">REPORT</p><h2 id="report-title">分析報告サマリー</h2></div><div class="controls"><button id="export" class="secondary">集計CSVをダウンロード</button><button id="print" class="primary">報告を印刷 / PDF保存</button></div></div><div class="scope-controls"></div><div id="report-body"></div></section>
+<div id="empty" class="card empty-state" hidden><span class="empty-symbol" aria-hidden="true">▥</span><h2 id="empty-title" tabindex="-1">まずは分析データを用意しましょう</h2><p>CSVを読み込み、項目を対応付けると、この画面で結果を確認できます。</p><div class="controls"><button class="primary" data-go="import">CSV読み込みへ</button><button id="empty-sample" class="secondary">架空サンプルで試す</button></div></div>
+<details class="log"><summary>動作ログ（データ本文は記録しません）</summary><ul id="logs" aria-live="polite"></ul></details>
+<footer><span>Survey Lens · 調査テンプレート対応版</span><button id="clear" class="text-button">読み込んだデータを消去</button></footer>
+</main><script>// Fictional local samples; no fetch required for file:// use.
+window.SAMPLE_SURVEYS = {"ai": "部門,AI利用状況,利用頻度,未利用理由,活用希望業務,希望する支援策,自由記述\r\n営業,利用中,毎日,,文書作成;議事録作成,業務別活用事例;相談窓口,資料作成の下書きに使いたい。\r\n営業,利用中,週に数回,,社内情報を検索したい;文書作成,実践研修,検索時に出典を確認したい。\r\n営業,利用中,月に数回,,データ集計;議事録作成,テンプレート集,\"「確認, 修正」の手順も知りたい。\"\r\n営業,未利用,利用なし,使い道が分からない;情報漏えいが心配,社内情報を検索したい,業務別活用事例;利用ルールの明確化,\"安全に入力できる情報を知りたい。\n演習があると助かります。\"\r\n営業,未利用,利用なし,操作方法が分からない,文書作成;データ集計,基礎講習;相談窓口,業務に合う使い方を相談したい。\r\n営業,未利用,利用なし,業務で必要性を感じない,社内情報を検索したい;文書作成,業務別活用事例,必要な場面を整理したい。\r\n管理,利用中,毎日,,文書作成;議事録作成,業務別活用事例;相談窓口,資料作成の下書きに使いたい。\r\n管理,利用中,週に数回,,社内情報を検索したい;文書作成,実践研修,検索時に出典を確認したい。\r\n管理,利用中,月に数回,,データ集計;議事録作成,テンプレート集,\"「確認, 修正」の手順も知りたい。\"\r\n管理,未利用,利用なし,使い道が分からない;情報漏えいが心配,社内情報を検索したい,業務別活用事例;利用ルールの明確化,\"安全に入力できる情報を知りたい。\n演習があると助かります。\"\r\n管理,未利用,利用なし,操作方法が分からない,文書作成;データ集計,基礎講習;相談窓口,業務に合う使い方を相談したい。\r\n管理,未利用,利用なし,業務で必要性を感じない,社内情報を検索したい;文書作成,業務別活用事例,必要な場面を整理したい。\r\n開発,利用中,毎日,,文書作成;議事録作成,業務別活用事例;相談窓口,資料作成の下書きに使いたい。\r\n開発,利用中,週に数回,,社内情報を検索したい;文書作成,実践研修,検索時に出典を確認したい。\r\n開発,利用中,月に数回,,データ集計;議事録作成,テンプレート集,\"「確認, 修正」の手順も知りたい。\"\r\n開発,未利用,利用なし,使い道が分からない;情報漏えいが心配,コード作成;データ集計,業務別活用事例;利用ルールの明確化,\"安全に入力できる情報を知りたい。\n演習があると助かります。\"\r\n開発,未利用,利用なし,操作方法が分からない,コード作成;データ集計,基礎講習;相談窓口,業務に合う使い方を相談したい。\r\n開発,未利用,利用なし,業務で必要性を感じない,社内情報を検索したい;文書作成,業務別活用事例,必要な場面を整理したい。\r\n人事,利用中,毎日,,文書作成;議事録作成,業務別活用事例;相談窓口,資料作成の下書きに使いたい。\r\n人事,利用中,週に数回,,社内情報を検索したい;文書作成,実践研修,検索時に出典を確認したい。\r\n人事,利用中,月に数回,,データ集計;議事録作成,テンプレート集,\"「確認, 修正」の手順も知りたい。\"\r\n人事,未利用,利用なし,使い道が分からない;情報漏えいが心配,社内情報を検索したい,業務別活用事例;利用ルールの明確化,\"安全に入力できる情報を知りたい。\n演習があると助かります。\"\r\n人事,未利用,利用なし,操作方法が分からない,文書作成;データ集計,基礎講習;相談窓口,業務に合う使い方を相談したい。\r\n人事,未利用,利用なし,業務で必要性を感じない,社内情報を検索したい;文書作成,業務別活用事例,必要な場面を整理したい。\r\n", "training": "部門,受講状況,理解度,受講上の課題,実践したい内容,希望するフォロー,自由記述\r\n営業,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n営業,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n営業,受講済み,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n営業,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n営業,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n営業,未受講,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n管理,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n管理,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n管理,受講済み,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n管理,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n管理,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n管理,未受講,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n開発,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n開発,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n開発,受講済み,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n開発,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n開発,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n開発,未受講,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n人事,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n人事,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n人事,受講済み,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n人事,受講済み,よく理解できた,内容が難しい,実務演習,復習資料;相談会,実務に近い例題を使って復習したい。\r\n人事,受講済み,理解できた,受講時間を確保しにくい,資料作成,演習教材,実務に近い例題を使って復習したい。\r\n人事,未受講,一部難しかった,,データ集計,フォロー相談,実務に近い例題を使って復習したい。\r\n", "employee": "部門,職場満足度,業務負荷,働く上での課題,希望する職場改善,希望する支援策,自由記述\r\n営業,とても満足,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n営業,満足,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n営業,やや満足,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n営業,どちらでもない,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n営業,やや不満,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n営業,不満,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n管理,とても満足,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n管理,満足,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n管理,やや満足,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n管理,どちらでもない,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n管理,やや不満,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n管理,不満,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n開発,とても満足,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n開発,満足,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n開発,やや満足,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n開発,どちらでもない,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n開発,やや不満,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n開発,不満,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n人事,とても満足,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n人事,満足,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n人事,やや満足,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n人事,どちらでもない,適切,業務量が多い;人手不足,柔軟な働き方,相談窓口;面談,安心して意見を伝えられる機会を希望します。\r\n人事,やや不満,高い,評価基準が不明確,在宅勤務,キャリア研修,安心して意見を伝えられる機会を希望します。\r\n人事,不満,低い,,業務分担の見直し,対話の機会,安心して意見を伝えられる機会を希望します。\r\n"};
+window.SAMPLE_CSV = window.SAMPLE_SURVEYS.ai;
+</script><script>/* Dependency-free aggregation engine; shared by browser and Node tests. */
+(function (root) {
+  'use strict';
+  const fields = {
+    department: {label:'部門', aliases:['部門','部署','所属','所属部署','department']},
+    usage: {label:'AI利用状況', aliases:['AI利用状況','生成AI利用状況','利用状況','usage']},
+    frequency: {label:'利用頻度', aliases:['利用頻度','AI利用頻度','frequency']},
+    reasons: {label:'未利用理由', aliases:['未利用理由','AI未利用の理由','利用しない理由','reasons']},
+    tasks: {label:'活用希望業務', aliases:['活用希望業務','AI活用を希望する業務','希望業務','tasks']},
+    support: {label:'希望する支援策', aliases:['希望する支援策','希望支援策','支援策','support']},
+    comment: {label:'自由記述', aliases:['自由記述','コメント','ご意見','comment']}
+  };
+
+  const templates = {
+    ai: {title:'生成AIの社内活用状況', metric:'利用中', positive:['利用中','利用している','使っている','利用あり','使用中','使用している','はい','yes','used','using'], negative:['未利用','利用していない','使っていない','利用なし','使用していない','いいえ','no','unused'], positiveLabel:'利用中',negativeLabel:'未利用',neutral:[],fields},
+    training: {title:'研修アンケート',metric:'受講済み',positive:['受講済み','受講した','参加した','受講済','参加済み'],negative:['未受講','受講していない','不参加'],positiveLabel:'受講済み',negativeLabel:'未受講',neutral:[],fields:{
+      department:fields.department,
+      usage:{label:'受講状況',aliases:['受講状況','参加状況']},
+      frequency:{label:'理解度',aliases:['理解度','研修理解度','内容の理解度']},
+      reasons:{label:'受講上の課題',aliases:['受講上の課題','研修の課題','改善点']},
+      tasks:{label:'実践したい内容',aliases:['実践したい内容','活用したい内容','実践テーマ']},
+      support:{label:'希望するフォロー',aliases:['希望するフォロー','フォロー','支援策']},comment:fields.comment}},
+    employee: {title:'従業員調査',metric:'満足',positive:['満足','とても満足','やや満足'],negative:['不満','とても不満','やや不満'],neutral:['どちらでもない','中立'],positiveLabel:'満足',negativeLabel:'不満',neutralLabel:'中立',fields:{
+      department:fields.department,
+      usage:{label:'職場満足度',aliases:['職場満足度','満足度','総合満足度']},
+      frequency:{label:'業務負荷',aliases:['業務負荷','業務量','負荷状況']},
+      reasons:{label:'働く上での課題',aliases:['働く上での課題','職場の課題','改善点']},
+      tasks:{label:'希望する職場改善',aliases:['希望する職場改善','改善希望','希望する働き方']},
+      support:{label:'希望する支援策',aliases:['希望する支援策','支援策','希望支援策']},comment:fields.comment}}
+  };
+  const aiRules=[
+      {key:'reasons',re:/使い道|活用方法|用途|活用事例/,title:'業務別活用事例の提供',effect:'自分の業務に当てはめられる用途を見つけやすくする。',caution:'実際の業務で試し、品質確認を含めて有用性を評価する。'},
+      {key:'reasons',re:/操作|使い方|スキル/,title:'基礎講習と相談窓口',effect:'基本操作への不安を減らし、安全な試行を支援する。',caution:'受講だけを成果とせず、演習後の利用継続を確認する。'},
+      {key:'reasons',re:/必要性|必要.*ない/,title:'対象業務の見直し',effect:'AIが役立つ業務と適用が不要な業務を整理する。',caution:'全員への利用強制を避け、業務適合性を確認する。'},
+      {key:'reasons',re:/情報|セキュリティ|機密|ルール/,title:'利用ルールと安全な利用環境の整備',effect:'情報の扱いに関する不安を減らす。',caution:'入力禁止情報、アクセス権、監査、契約条件を担当部門と確認する。'},
+      {key:'tasks',re:/社内.*検索|社内情報|ナレッジ/,title:'社内検索環境の検討',effect:'必要な社内情報を探す作業を支援する。',caution:'アクセス権を継承し、出典表示・情報更新・回答精度を検証する。'},
+      {key:'support',re:/講習|研修|勉強会/,title:'ニーズ別の研修を試行',effect:'希望に沿った学習機会を提供する。',caution:'部門や習熟度に合わせ、小規模な試行から評価する。'},
+      {key:'support',re:/事例|テンプレート/,title:'事例・テンプレート集の整備',effect:'利用を始める際の準備負担を減らす。',caution:'誤出力の確認手順を付け、利用者の意見で更新する。'},
+      {key:'support',re:/相談|伴走/,title:'業務相談と伴走支援',effect:'個別の業務課題を試行可能なテーマに整理する。',caution:'相談内容の機密性と担当者の支援負荷を管理する。'}
+    ];
+  templates.ai.rules=aiRules;
+  templates.training.rules=[
+    {key:'reasons',re:/難し|難易度|理解/,title:'習熟度に合わせた研修設計',effect:'受講者が理解しやすい内容と進度を検討する。',caution:'理解度を演習で確認し、受講者の前提知識を調べる。'},
+    {key:'reasons',re:/時間|日程|参加しにく/,title:'開催時間と受講形式の見直し',effect:'受講しやすい日程や形式を検討する。',caution:'業務時間の確保を上司と調整し、振替や録画の扱いを確認する。'},
+    {key:'tasks',re:/実践|演習/,title:'実務に近い演習の追加',effect:'研修内容を実際の業務に適用する機会を設ける。',caution:'実データを使う場合は機密情報の取扱いを確認する。'},
+    {key:'support',re:/復習|資料|教材/,title:'復習資料と学習機会の提供',effect:'受講後に学び直せる機会を増やす。',caution:'資料配布だけで終わらず、理解や活用を後日確認する。'},
+    {key:'support',re:/相談|フォロー|伴走/,title:'受講後のフォロー相談',effect:'実務適用で生じた疑問を解消しやすくする。',caution:'相談の担当者と受付期間を決め、運営負荷を確認する。'}
+  ];
+  templates.employee.rules=[
+    {key:'reasons',re:/負荷|残業|人手|業務量/,title:'業務量と担当分担の見直し',effect:'負荷の偏りや優先順位を把握して調整を検討する。',caution:'個人の評価に直結させず、実際の業務時間や担当範囲を追加確認する。'},
+    {key:'reasons',re:/評価|処遇/,title:'評価制度の説明と対話',effect:'評価基準の理解と納得感を確認する。',caution:'制度の問題と説明不足を切り分け、個別回答者を詮索しない。'},
+    {key:'tasks',re:/柔軟|在宅|働き方/,title:'柔軟な働き方の検討',effect:'業務特性に応じた働き方の選択肢を検討する。',caution:'職種による実施可能性や公平性を確認する。'},
+    {key:'support',re:/相談|面談|対話/,title:'安心して相談できる対話機会',effect:'課題を共有し、支援につなげやすくする。',caution:'守秘と不利益取扱い防止を明確にし、利用を強制しない。'},
+    {key:'support',re:/研修|学習|キャリア/,title:'学習・キャリア支援の検討',effect:'必要な学習機会と成長支援を整理する。',caution:'希望の背景と職務上の必要性を面談等で確認する。'}
+  ];
+  const keys=Object.keys(fields);
+  function configuration(options='ai'){
+    if(options && options.resolved)return options;
+    const input=typeof options==='string'?{id:options}:options||{};
+    const base=templates[input.id]||templates.ai;
+    const configuredFields=Object.fromEntries(keys.map(k=>[k,{...base.fields[k],label:input.labels?.[k]?.trim()||base.fields[k].label}]));
+    const multi=Object.fromEntries(keys.map(k=>[k,['reasons','tasks','support'].includes(k)]));
+    for(const k of ['frequency','reasons','tasks','support'])if(typeof input.multi?.[k]==='boolean')multi[k]=input.multi[k];
+    return {...base,id:templates[input.id]?input.id:'ai',fields:configuredFields,multi,unmapped:keys.filter(k=>input.unmapped?.includes(k)),resolved:true};
+  }
+  function choices(value,multi=false){return [...new Set((multi?String(value||'').split(/[;；|｜\r\n、]/):[String(value||'')]).map(v=>v.trim()).filter(Boolean))];}
+  function parseCSV(source) {
+    if (typeof source !== 'string' || !source.replace(/^\uFEFF/,'').trim()) throw new Error('CSVが空です。見出しと回答データを含むファイルを選択してください。');
+    source=source.replace(/^\uFEFF/,'');
+    const rows=[]; let row=[], cell='', state='start', line=1;
+    const finishRow=()=>{ row.push(cell); if(row.some(v=>v.trim()!==''))rows.push(row); row=[]; cell=''; state='start'; };
+    for(let i=0;i<source.length;i++) {
+      const c=source[i];
+      if(state==='quoted') {
+        if(c==='"') {if(source[i+1]==='"'){cell+='"';i++;}else state='closed';}
+        else {cell+=c;if(c==='\n')line++;}
+      } else if(c===',' ) {row.push(cell);cell='';state='start';}
+      else if(c==='\n'||c==='\r') {if(c==='\r'&&source[i+1]==='\n')i++;finishRow();line++;}
+      else if(c==='"') {if(state!=='start')throw new Error(`${line}行付近：セル途中の引用符です。値全体をダブルクォートで囲んでください。`);state='quoted';}
+      else {if(state==='closed')throw new Error(`${line}行付近：閉じ引用符の後に不正な文字があります。`);cell+=c;state='plain';}
+    }
+    if(state==='quoted')throw new Error('ダブルクォートが閉じられていません。改行を含むセルの引用符を確認してください。');
+    finishRow();
+    if(rows.length<2)throw new Error('回答データがありません。見出しの次に1件以上の回答が必要です。');
+    const headers=rows.shift().map(v=>v.trim());
+    if(headers.some(v=>!v))throw new Error('空の列名があります。すべての列に見出しを付けてください。');
+    if(new Set(headers).size!==headers.length)throw new Error('同じ列名が複数あります。列名を一意にしてください。');
+    rows.forEach((r,i)=>{if(r.length!==headers.length)throw new Error(`データ${i+1}件目の列数が不一致です（見出し${headers.length}列、データ${r.length}列）。カンマや引用符を確認してください。`);});
+    return {headers,rows};
+  }
+  const norm=s=>s.normalize('NFKC').replace(/[\s_]/g,'').toLowerCase();
+  function autoMap(headers,options){return Object.fromEntries(Object.entries(configuration(options).fields).map(([k,f])=>[k,headers.findIndex(h=>f.aliases.some(a=>norm(a)===norm(h)))]));}
+  function records(parsed,map){return parsed.rows.map(row=>Object.fromEntries(Object.keys(fields).map(k=>[k,map[k]>=0 ? row[map[k]].trim():''])));}
+  function category(value,options){
+    const config=configuration(options),v=norm(value||'');
+    if(!v)return '未回答';
+    if(config.positive.some(x=>norm(x)===v))return config.positiveLabel;
+    if(config.negative.some(x=>norm(x)===v))return config.negativeLabel;
+    if(config.neutral.some(x=>norm(x)===v))return config.neutralLabel;
+    return '判定不能';
+  }
+  const pct=(count,total)=>total ? Math.round(count/total*1000)/10:0;
+  function distribution(rows,key,multi=false){
+    const counts=new Map();let valid=0;
+    for(const r of rows){
+      const values=choices(r[key],multi);
+      if(!values.length)continue;valid++;values.forEach(v=>counts.set(v,(counts.get(v)||0)+1));
+    }
+    return {valid,missing:rows.length-valid,items:[...counts].map(([label,count])=>({label,count,percent:pct(count,valid)})).sort((a,b)=>b.count-a.count||a.label.localeCompare(b.label,'ja'))};
+  }
+  function aggregate(rows,options){
+    const config=configuration(options);
+    const usageRows=rows.map(r=>({...r,usage:category(r.usage,config)==='未回答'?'':category(r.usage,config)}));
+    const usage=distribution(usageRows,'usage');
+    const count=usage.items.find(x=>x.label===config.positiveLabel)?.count||0;
+    return {total:rows.length,department:distribution(rows,'department'),usage,used:count,usedPercent:pct(count,usage.valid),frequency:distribution(rows,'frequency',config.multi.frequency),reasons:distribution(rows,'reasons',config.multi.reasons),tasks:distribution(rows,'tasks',config.multi.tasks),support:distribution(rows,'support',config.multi.support)};
+  }
+  function ruleMatches(value,rule){
+    if(!rule.re.test(value))return false;
+    // Exclude only explicit denial endings, without claiming general language understanding.
+    const text=norm(value).replace(/[。.!！]+$/,'');
+    if(['tasks','support'].includes(rule.key)&&/(?:不要|いらない|希望しない|必要(?:は|が)?ない|必要なし)(?:です)?$/.test(text))return false;
+    if(rule.key==='reasons'&&/(?:問題(?:は|が)?ない|困っていない|支障(?:は|が)?ない|心配(?:は|が)?ない|心配ではない)(?:です)?$/.test(text))return false;
+    return true;
+  }
+  function findings(rows,scope='全体',options){
+    const config=configuration(options);
+    const a=aggregate(rows,config),issues=[],actions=[];
+    const rules=config.rules;
+    for(const key of ['reasons','tasks','support']){
+      const d=a[key];
+      d.items.slice(0,3).forEach(item=>issues.push({title:`${config.fields[key].label}：${item.label}`,evidence:`${scope}／${item.count}件・${item.percent}%（この項目の有効回答${d.valid}件）`,key,item}));
+      for(const rule of rules.filter(r=>r.key===key)){
+        const matches=d.items.filter(i=>ruleMatches(i.label,rule));if(!matches.length)continue;
+        // Count unique respondents matching the rule, never sum overlapping choices.
+        const count=rows.filter(r=>choices(r[key],config.multi[key]).some(v=>ruleMatches(v,rule))).length;
+        actions.push({title:rule.title,evidence:`${scope}／「${matches.map(i=>i.label).join('・')}」のいずれか：${count}件・${pct(count,d.valid)}%（有効回答${d.valid}件、重複除外）`,effect:rule.effect,caution:rule.caution});
+      }
+    }
+    const followups=[];
+    for(const key of ['usage','frequency','reasons','tasks','support']) {
+      if(config.unmapped.includes(key))followups.push(`${config.fields[key].label}は列未指定：必要な項目ならCSV列を対応付ける。未回答の件数は判断できない。`);
+      else if(a[key].missing)followups.push(`${config.fields[key].label}の未回答${a[key].missing}件／対象${a.total}件（${pct(a[key].missing,a.total)}%）：設問の対象条件と回答しにくさを確認。`);
+    }
+    const unknown=a.usage.items.find(i=>i.label==='判定不能');if(unknown)followups.push(`${config.fields.usage.label}の判定不能${unknown.count}件（有効回答の${unknown.percent}%）：選択肢と項目対応を確認。`);
+    if(a.reasons.valid)followups.push(`${config.fields.reasons.label}の有効回答${a.reasons.valid}件：具体的な背景・制約を追加ヒアリングし、設問の対象条件を確認。`);
+    followups.push(config.id==='ai'?'全社員・全アカウントの人数、回答対象者、回答期間、選択バイアスを確認。現データから組織全体の利用率は推定しない。':'調査対象者数、回答期間、回収状況、選択バイアスを確認。回答者の傾向を組織全体へ一般化しない。');
+    return {issues,actions,followups};
+  }
+  function csvCell(value){let s=String(value??'');if(/^[\s\u0000-\u001f]*[=+\-@]/.test(s)||/^[\t\r\n]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
+  function exportCSV(rows){return '\uFEFF'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n');}
+  const api={fields,templates,configuration,choices,parseCSV,autoMap,records,category,pct,distribution,aggregate,findings,csvCell,exportCSV};
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.Survey=api;
+})(typeof globalThis!=='undefined'?globalThis:this);
+</script><script>'use strict';
+(() => {
+  const S = window.Survey, $ = id => document.getElementById(id);
+  const state = {parsed:null,rows:[],map:{},scope:'',view:'import',source:'',applied:false,pending:false,config:S.configuration()};
+  let loadVersion = 0;
+  const fields = () => state.config.fields;
+  const aggregate = rows => S.aggregate(rows,state.config);
+  const unknownCount = a => a.usage.items.find(i=>i.label==='判定不能')?.count||0;
+  const canClassify = a => a.usage.valid-unknownCount(a)>0;
+
+  function el(tag,text,cls) {
+    const node = document.createElement(tag);
+    if (text!==undefined) node.textContent=text;
+    if (cls) node.className=cls;
+    return node;
+  }
+  function log(text) {
+    $('logs').prepend(el('li',`${new Date().toLocaleTimeString('ja-JP')}  ${text}`));
+    while ($('logs').children.length>30) $('logs').lastChild.remove();
+  }
+  function message(text,error=false) {
+    $('error').hidden=!error; $('error').textContent=error?text:'';
+    $('notice').textContent=error?'':text;
+    if (error) {log('エラー：'+text);$('error').focus();$('error').scrollIntoView({block:'center'});}
+  }
+  function list(items) {const ul=el('ul');items.forEach(i=>ul.append(el('li',i)));return ul;}
+  function table(headers,rows) {
+    const t=el('table'),head=el('thead'),hr=el('tr'),body=el('tbody');
+    headers.forEach(v=>{const th=el('th',v);th.scope='col';hr.append(th);});
+    head.append(hr);t.append(head);
+    rows.forEach(row=>{const tr=el('tr');row.forEach(v=>tr.append(el('td',String(v))));body.append(tr);});
+    t.append(body);return t;
+  }
+  function tableRegion(title) {
+    const wrap=el('div',undefined,'table-wrap');wrap.tabIndex=0;
+    wrap.setAttribute('role','region');wrap.setAttribute('aria-label',title);return wrap;
+  }
+  function classification(config) {
+    const rows=[`${config.positiveLabel}：${config.positive.join(' / ')}`,`${config.negativeLabel}：${config.negative.join(' / ')}`];
+    if(config.neutral.length) rows.push(`${config.neutralLabel}：${config.neutral.join(' / ')}`);
+    $('classification-rules').replaceChildren(list(rows));
+  }
+  function draftTemplate() {return S.configuration($('template').value);}
+  function templateInfo() {
+    const c=draftTemplate();
+    $('template-description').textContent=`指標：${c.fields.usage.label} → ${c.metric}の件数・回答者内割合。課題・施策は「${c.title}」のルールで整理します。`;
+    $('sample-download').href='data:text/csv;charset=utf-8,'+encodeURIComponent('\uFEFF'+window.SAMPLE_SURVEYS[c.id]);$('sample-download').download={ai:'sample_survey.csv',training:'sample_training.csv',employee:'sample_employee.csv'}[c.id];
+    classification(c);
+    if(state.parsed)$('source-caption').textContent=`${c.title} · ${state.source}（変更するにはここを開く）`;
+  }
+  function focusAt(id) {
+    const target=$(id);if(!target)return;
+    target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
+  }
+  function steps() {
+    const stage=!state.parsed?0:(!state.applied||state.pending)?1:2;
+    ['step-upload','step-mapping','step-analysis'].forEach((id,i)=>{
+      $(id).classList.toggle('is-complete',i<stage);
+      if(i===stage)$(id).setAttribute('aria-current','step');else $(id).removeAttribute('aria-current');
+    });
+    document.body.classList.toggle('has-data',state.applied);
+    $('intro-description').textContent=state.applied?'集計の根拠を確かめながら、課題と次の施策を整理しましょう。':state.parsed?'データを読み込みました。列の対応を確認して、集計へ進みましょう。':'アンケートの集計から課題と施策、報告まで。CSVを選んで、分析を始めましょう。';
+  }
+  function mappingSummary() {
+    if(!state.parsed)return;
+    const keys=Object.keys(S.fields),values=keys.map(k=>$('map-'+k).value),mapped=values.filter(v=>v!=='-1');
+    const duplicates=new Set(mapped.filter((v,i)=>mapped.indexOf(v)!==i));
+    keys.forEach((key,i)=>{
+      const status=values[i]==='-1'?'missing':duplicates.has(values[i])?'conflict':'assigned';
+      $('map-'+key).closest('.mapping-field').dataset.status=status;
+      $('map-status-'+key).textContent={missing:'未指定',conflict:'重複',assigned:'対応済み'}[status];
+      const summary=$('advanced-'+key).querySelector('summary');
+      summary.textContent='詳細設定'+($('multi-'+key)?' · '+($('multi-'+key).value==='multi'?'複数選択':'単一選択'):' · 表示名');
+    });
+    $('mapping-summary').textContent=`${mapped.length} / ${keys.length}項目を対応付け${duplicates.size?' · 同じCSV列の重複があります。対応を見直してください。':mapped.length===keys.length?' · すべての項目を集計できます。':' · 未指定の項目はデータなしになります。'}`;
+    $('mapping-summary').classList.toggle('has-conflict',duplicates.size>0);
+  }
+  function dirty() {
+    state.pending=true;mappingSummary();steps();
+    $('mapping-status').textContent=state.applied?'設定に未適用の変更があります。「この対応で集計する」を押すまで、分析・出力は前回の設定を使います。':'対応と選択方式を確認して「この対応で集計する」を押してください。';
+    if(state.applied) $('mapping-status').classList.add('pending');
+  }
+  function buildMapping() {
+    if(!state.parsed)return;
+    const c=draftTemplate(),initial=S.autoMap(state.parsed.headers,c);
+    $('mapping').replaceChildren();
+    Object.entries(c.fields).forEach(([key,f],index)=>{
+      const box=el('div',undefined,'mapping-field'),head=el('div',undefined,'mapping-field-head');
+      const label=el('label',f.label);label.htmlFor='map-'+key;
+      const status=el('span',undefined,'mapping-badge');status.id='map-status-'+key;
+      head.append(el('span',String(index+1).padStart(2,'0'),'field-index'),label,status);box.append(head);
+      const select=el('select');select.id='map-'+key;select.append(new Option('未指定（データなし）','-1'));
+      state.parsed.headers.forEach((h,i)=>select.append(new Option(h,String(i))));select.value=String(initial[key]);box.append(select);
+      const details=el('details',undefined,'field-advanced');details.id='advanced-'+key;details.append(el('summary','詳細設定'));
+      const nameLabel=el('label','画面・報告の表示名'),name=el('input');name.type='text';name.id='label-'+key;name.value=f.label;name.maxLength=60;nameLabel.append(name);details.append(nameLabel);
+      if(['frequency','reasons','tasks','support'].includes(key)) {
+        const typeLabel=el('label','選択方式'),type=el('select');type.id='multi-'+key;
+        type.append(new Option('単一選択','single'),new Option('複数選択','multi'));
+        type.value=c.multi[key]?'multi':'single';typeLabel.append(type);details.append(typeLabel);
+      }
+      box.append(details);$('mapping').append(box);
+    });
+    dirty();
+  }
+  function clearAnalysis() {
+    ['charts','department-details','metrics','department-comparison','findings','actions','followups','department-findings','comments','report-body','quality-body','analysis-context'].forEach(id=>$(id).replaceChildren());
+  }
+  function load(text,source) {
+    if(text.includes('\u0000')) throw new Error('NUL文字を含むファイルです。UTF-8またはShift_JISのCSVで保存し直してください。');
+    const parsed=S.parseCSV(text);
+    if(parsed.rows.length>50000)throw new Error('回答が50,000件を超えています。ファイルを分割してください。');
+    state.parsed=parsed;state.source=source;state.applied=false;state.rows=[];state.scope='';clearAnalysis();
+    buildMapping();$('mapping-panel').hidden=false;$('preview-panel').hidden=false;
+    $('preview').replaceChildren(table(parsed.headers,parsed.rows.slice(0,50)));
+    $('preview-info').textContent=`${parsed.rows.length}件・${parsed.headers.length}列。プレビューは先頭50件まで。空行は除外しています。`;
+    $('source-settings').open=false;$('source-caption').textContent=`${draftTemplate().title} · ${source}（変更するにはここを開く）`;$('loaded-summary').hidden=false;$('loaded-file').textContent=source;$('loaded-count').textContent=`${parsed.rows.length}件 · ${parsed.headers.length}列 · 次に項目の対応を確認`;$('file-meta').textContent=source;
+    show('import');message(`${parsed.rows.length}件を読み込みました。列の対応と調査テンプレートを確認してください。`);
+    log(`${source}を読み込み：${parsed.rows.length}件`);focusAt('loaded-file');
+  }
+  function departmentLabel(raw) {
+    if(raw!==''&&raw!=='全体')return raw;
+    const actual=new Set(state.rows.map(r=>r.department));
+    const suffix=raw===''?'（空欄）':'（部門名）';
+    let label=(raw||'部門未回答')+suffix;
+    while(actual.has(label))label+=suffix;
+    return label;
+  }
+  function selected() {return state.scope?state.rows.filter(r=>r.department===JSON.parse(state.scope)):state.rows;}
+  function scopeName() {return state.scope?departmentLabel(JSON.parse(state.scope)):'全体';}
+  function groups(rows) {return [...new Set(rows.map(r=>r.department))].sort((a,b)=>a.localeCompare(b,'ja')).map(raw=>({raw,label:departmentLabel(raw),value:JSON.stringify(raw)}));}
+  function show(view) {
+    state.view=view;
+    document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='view-'+view);
+    document.querySelectorAll('#nav button').forEach(b=>{if(b.dataset.view===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+    $('empty').hidden=view==='import'||state.applied;
+    if(view!=='import'&&!state.applied)$('view-'+view).hidden=true;
+    $('analysis-context').hidden=!state.applied;steps();
+  }
+  function navigate(view) {
+    show(view);
+    if(view!=='import'&&!state.applied)focusAt('empty-title');
+    else focusAt(view==='import'?'import-title':view==='issues'?'issues-title':view+'-title');
+  }
+  function scopes() {
+    document.querySelectorAll('.scope-controls').forEach((c,index)=>{
+      const label=el('label','集計対象の部門'),select=el('select');select.append(new Option('全体',''));
+      if(state.map.department>=0)groups(state.rows).forEach(i=>select.append(new Option(i.label,i.value)));
+      select.value=state.scope;
+      select.addEventListener('change',()=>{state.scope=select.value;render();document.querySelectorAll('.scope-controls select')[index]?.focus();log('部門フィルターを変更');});
+      label.append(select);c.replaceChildren(label);
+    });
+  }
+  function chart(key,d) {
+    const c=el('article',undefined,'chart-card');
+    c.append(el('h3',fields()[key].label+(key==='department'?'別回答件数':'')),el('p',state.map[key]<0?'列未指定 · 集計できません':`有効回答 ${d.valid}件 / 未回答 ${d.missing}件`,'hint'));
+    if(!d.items.length){c.append(el('p','データなし','no-data'));return c;}
+    if(state.config.multi[key])c.append(el('span','複数選択 · 回答者単位で重複除外','choice-badge'));
+    d.items.slice(0,10).forEach(i=>{
+      const row=el('div',undefined,'bar-row'),track=el('div',undefined,'track'),bar=el('div',undefined,'bar');
+      bar.style.width=i.percent+'%';track.append(bar);track.setAttribute('aria-hidden','true');
+      row.append(el('span',i.label,'bar-label'),track,el('span',`${i.count}件 / ${i.percent}%`,'bar-number'));c.append(row);
+    });
+    const details=el('details',undefined,'chart-data');details.append(el('summary',`集計表を確認（${d.items.length}項目・グラフは上位10項目）`));
+    const wrap=tableRegion(fields()[key].label+' 集計表');
+    wrap.append(table(['項目','件数','割合（有効回答比）'],d.items.map(i=>[i.label,i.count,i.percent+'%'])));details.append(wrap);c.append(details);return c;
+  }
+  function quality(a) {
+    const mapped=Object.keys(fields()).filter(k=>state.map[k]>=0).length;
+    const unknown=unknownCount(a);
+    $('quality-summary').textContent=`データ品質・集計条件を確認：対応${mapped}/7項目${unknown?` · 判定不能${unknown}件`:''}`;
+    const wrap=tableRegion('項目別のデータ品質');
+    wrap.append(table(['分析項目','対応するCSV列','選択方式','有効回答','未回答'],Object.keys(fields()).filter(k=>k!=='comment').map(k=>[
+      fields()[k].label,state.map[k]>=0?state.parsed.headers[state.map[k]]:'未指定',state.config.multi[k]?'複数選択':'単一選択',a[k].valid+'件',state.map[k]>=0?a[k].missing+'件':'全件対象外（未指定）'
+    ])));
+    $('quality-body').replaceChildren(el('p','未指定と未回答を区別して確認できます。条件付き設問の未回答は、回答漏れとは限りません。','hint'),wrap);
+    const raw=S.distribution(selected().filter(r=>S.category(r.usage,state.config)==='判定不能'),'usage');
+    if(unknown)$('quality-body').append(el('p',`分類できない回答：${raw.items.slice(0,10).map(i=>`「${i.label}」${i.count}件`).join(' / ')}${raw.items.length>10?'（先頭10項目）':''}。${fields().usage.label}の有効回答${a.usage.valid}件のうち${unknown}件です。`,`quality-warning`));
+    $('quality-body').append(el('p',`分類：${state.config.positiveLabel} = ${state.config.positive.join(' / ')}。分類に使う回答は完全一致です。回答者内割合の分母には判定不能も含みます。`,'hint'));
+  }
+  function dashboards(a) {
+    const c=state.config;
+    const metricValue=!a.usage.valid?'データなし':!canClassify(a)?'判定不能':a.used+'件';
+    const percentage=!a.usage.valid?'データなし':!canClassify(a)?'算出不可':a.usedPercent+'%';
+    $('metrics').replaceChildren();
+    [['対象回答件数',a.total+'件','CSVの各行を1回答として集計'],[c.metric,metricValue,`${fields().usage.label}の明示的な回答を分類`],[`回答者内の${c.metric}割合`,percentage,`有効回答 ${a.usage.valid}件が分母（判定不能含む）`],['部門数',state.map.department>=0?a.department.items.length+'部門':'データなし','空欄の部門を除く']].forEach(([label,value,hint])=>{const m=el('div',undefined,'metric');m.append(el('span',label),el('strong',value),el('small',hint));$('metrics').append(m);});
+    $('denominator-note').textContent=`割合の分母は各項目の有効回答者数です。複数選択は合計100%を超えることがあります。「${fields().reasons.label}」は、その項目に回答した全員を集計します。`;
+    $('charts').replaceChildren(...['department','usage','frequency','reasons','tasks','support'].map(k=>chart(k,a[k])));
+    $('department-details').replaceChildren(...['usage','frequency','reasons','tasks','support'].map(k=>chart(k,a[k])));
+    quality(a);
+  }
+  function comparison() {
+    if(state.map.department<0){$('department-comparison').replaceChildren(el('p','データなし：部門の列を対応付けてください。','no-data'));return;}
+    const wrap=tableRegion('部門別比較表');
+    const top=d=>d.items.length?d.items.filter(x=>x.count===d.items[0].count).map(i=>`${i.label}：${i.count}件 (${i.percent}%)`).join(' / '):'データなし';
+    wrap.append(table(['部門','回答件数',`${fields().usage.label} 有効回答`,state.config.metric,`${state.config.metric}割合`,fields().reasons.label+'（最多）',fields().support.label+'（最多）'],groups(state.rows).map(g=>{
+      const a=aggregate(state.rows.filter(r=>r.department===g.raw));
+      return [g.label,a.total,a.usage.valid,!a.usage.valid?'データなし':canClassify(a)?a.used:'判定不能',!a.usage.valid?'データなし':canClassify(a)?a.usedPercent+'%':'算出不可',top(a.reasons),top(a.support)];
+    })));
+    $('department-comparison').replaceChildren(el('p',`割合の分母は各部門の${fields().usage.label}の有効回答者数。上位項目は同率をすべて表示。`,'hint'),wrap);
+  }
+  function issues(f) {
+    $('findings-heading').textContent=`${fields().reasons.label}・${fields().tasks.label}・${fields().support.label}（各上位3項目）`;
+    $('findings').replaceChildren(...f.issues.map(i=>{const c=el('article',undefined,'card');c.append(el('h3',i.title),el('p',i.evidence,'evidence'));return c;}));
+    if(!f.issues.length)$('findings').append(el('p','データなし：課題・希望・支援に対応する列を指定してください。','no-data'));
+    $('actions').replaceChildren(...f.actions.map(i=>{const c=el('article',undefined,'card');c.append(el('h3',i.title),el('p',i.evidence,'evidence'),el('p','期待効果の方向性：'+i.effect),el('p','実施上の注意：'+i.caution,'hint'));return c;}));
+    if(!f.actions.length)$('actions').append(el('p','該当する施策ルールがありません。回答内容を確認して個別に検討してください。','no-data'));
+    $('followups').replaceChildren(list(f.followups));
+    const departments=state.map.department>=0?groups(selected()):[];
+    $('department-findings').replaceChildren(...departments.map(g=>{
+      const rows=selected().filter(r=>r.department===g.raw),a=aggregate(rows),c=el('article',undefined,'card');
+      c.append(el('h3',`${g.label}（${rows.length}件）`));
+      ['reasons','support'].forEach(k=>{const d=a[k],top=d.items.filter(i=>i.count===d.items[0]?.count);c.append(el('p',top.length?`${fields()[k].label}の部門内最多：${top.map(i=>`${i.label} ${i.count}件・${i.percent}%`).join(' / ')}（有効回答${d.valid}件）`:`${fields()[k].label}：データなし`));});
+      c.append(el('p','部門内の最多項目の記述です。他部門との差や統計的な有意差は判定していません。','hint'));return c;
+    }));
+    if(!departments.length)$('department-findings').append(el('p','データなし：部門の列を対応付けてください。','no-data'));
+    const comments=selected().filter(r=>r.comment);
+    $('comments').replaceChildren(el('p',`${comments.length}件。画面は先頭200件まで。`,'hint'),...comments.slice(0,200).map(r=>{const c=el('div',r.comment,'comment');c.append(el('small',departmentLabel(r.department)));return c;}));
+    if(!comments.length)$('comments').append(el('p','データなし','no-data'));
+  }
+  function report(a,f) {
+    const c=state.config;
+    const statusFact=!a.usage.valid?`${fields().usage.label}：データなし。`:!canClassify(a)?`${fields().usage.label}：有効回答${a.usage.valid}件すべてが判定不能のため、${c.metric}割合は算出不可。`:`${c.metric}${a.used}件・${a.usedPercent}%（${fields().usage.label}の有効回答${a.usage.valid}件が分母、未回答${a.usage.missing}件、判定不能${unknownCount(a)}件）。`;
+    const facts=[`調査：${c.title}。対象：${scopeName()}／回答${a.total}件。ファイル：${state.source}。`,statusFact,...['frequency','reasons','tasks','support'].map(k=>{
+      const d=a[k];return d.items.length?`${fields()[k].label}：${d.items.filter(i=>i.count===d.items[0].count).map(i=>`${i.label} ${i.count}件・${i.percent}%`).join(' / ')}が最多（有効回答${d.valid}件、未回答${d.missing}件）。`:`${fields()[k].label}：データなし${state.map[k]<0?'（列未指定）':''}。`;
+    })];
+    const insights=f.issues.length?f.issues.slice(0,6).map(i=>`${i.title}が検討材料（${i.evidence}）。`):['課題抽出に必要なデータがありません。項目の対応と設問を確認してください。'];
+    const implications=f.actions.length?f.actions.map(i=>`${i.title}：${i.effect}（方向性の仮説。効果の実測は未実施）`):['業務への影響を判断するため、回答の背景と課題を追加確認する必要があります。'];
+    const decisions=['回答者の傾向を調査対象者全体へ一般化できるか、対象範囲と回収状況を確認する。','施策の担当部門・対象業務・評価指標と試行期間を決める。削減時間・ROIは実測前に数値化しない。'];
+    const actions=f.actions.length?f.actions.map(i=>`${i.title}を小規模に試行する。注意：${i.caution}`):['未対応の項目や判定不能な選択肢を確認し、追加調査を計画する。'];
+    actions.push('担当者と対象範囲を決め、試行前後の実測や追加アンケートで結果を確認し、継続・修正を判断する。');
+    const caveat=c.id==='ai'?'全社員・全アカウントの利用率ではありません。':'調査対象者全体の状態や研修効果の因果関係を示すものではありません。';
+    $('report-body').replaceChildren(el('p',`ルールベース分析／割合は各項目の有効回答者比。複数選択は重複選択を除外。${caveat}`,'rule-note'),...[
+      ['1. Fact：確認できた事実',facts],['2. Insight：分析から見える示唆',insights],['3. Implication：業務・組織への影響',implications],['4. Decision：検討すべき判断事項',decisions],['5. Action：次の具体的施策',actions],['追加調査・制約',f.followups]
+    ].map(([title,items])=>{const section=el('article',undefined,'report-section');section.append(el('h3',title),list(items));return section;}));
+  }
+  function render() {
+    if(!state.applied)return;
+    scopes();const rows=selected(),a=aggregate(rows),f=S.findings(rows,scopeName(),state.config);
+    $('analysis-context').replaceChildren(el('span',state.config.title,'context-template'),el('span',`対象：${scopeName()} · ${rows.length} / ${state.rows.length}件`));
+    dashboards(a);comparison();issues(f);report(a,f);
+  }
+  document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.view)));
+  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.go)));
+  $('empty-sample').addEventListener('click',()=>{$('sample').click();focusAt('mapping-title');});
+  $('review-mapping').addEventListener('click',()=>focusAt('mapping-title'));
+  $('auto-map').addEventListener('click',()=>{
+    if(!state.parsed)return;const auto=S.autoMap(state.parsed.headers,draftTemplate());
+    Object.keys(S.fields).forEach(k=>$('map-'+k).value=String(auto[k]));dirty();
+    message('CSV列の対応を自動選択しました。表示名と選択方式は維持しています。');focusAt('mapping-title');
+  });
+  $('template').addEventListener('change',()=>{templateInfo();buildMapping();if(state.parsed)message('調査テンプレートを変更しました。列の対応を確認して再集計してください。適用までは前回の分析を保持します。');});
+  $('mapping').addEventListener('input',dirty);
+  $('mapping').addEventListener('change',dirty);
+  $('sample').addEventListener('click',()=>{
+    loadVersion++;$('file').value='';$('file').setAttribute('aria-busy','false');
+    try{const c=draftTemplate();load(window.SAMPLE_SURVEYS[c.id],`${c.title}の架空サンプル`);}catch(e){message(e.message,true);}
+  });
+  async function readFile(file) {
+    if(!file)return;
+    const version=++loadVersion,encoding=$('encoding').value;
+    $('file').setAttribute('aria-busy','true');$('file-meta').textContent='読み込み中…';
+    try {
+      if(!/\.csv$/i.test(file.name))throw new Error('拡張子が.csvのファイルを選択してください。');
+      if(file.size>10*1024*1024)throw new Error('ファイルが10MBを超えています。ファイルを分割してください。');
+      const bytes=await file.arrayBuffer();if(version!==loadVersion)return;
+      let text,used=encoding;
+      if(encoding==='auto') {try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);used='UTF-8';}catch{text=new TextDecoder('shift_jis',{fatal:true}).decode(bytes);used='Shift_JIS';}}
+      else text=new TextDecoder(encoding,{fatal:true}).decode(bytes);
+      load(text,file.name);log(`文字コード：${used}`);
+    }catch(e){if(version===loadVersion){$('file-meta').textContent=state.parsed?state.source:'ファイル未選択';message(`読み込み失敗：${e.message} 文字コードの指定も確認してください。既存の集計は変更していません。`,true);}}
+    finally{if(version===loadVersion)$('file').setAttribute('aria-busy','false');}
+  }
+  $('file').addEventListener('change',()=>readFile($('file').files[0]));
+  let dragDepth=0;
+  const resetDrop=()=>{dragDepth=0;$('drop-zone').classList.remove('drag-active');};
+  $('drop-zone').addEventListener('dragenter',e=>{if(!e.dataTransfer.types.includes('Files'))return;e.preventDefault();dragDepth++;$('drop-zone').classList.add('drag-active');});
+  $('drop-zone').addEventListener('dragover',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();e.dataTransfer.dropEffect='copy';}});
+  $('drop-zone').addEventListener('dragleave',()=>{dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)resetDrop();});
+  $('drop-zone').addEventListener('drop',e=>{e.preventDefault();resetDrop();if(e.dataTransfer.files.length!==1){message('CSVファイルを1つずつドロップしてください。',true);return;}$('file').value='';readFile(e.dataTransfer.files[0]);});
+
+  $('apply').addEventListener('click',()=>{
+    if(!state.parsed)return;
+    const map=Object.fromEntries(Object.keys(S.fields).map(k=>[k,Number($('map-'+k).value)])),mapped=Object.values(map).filter(v=>v>=0);
+    if(!mapped.length){message('1つ以上の分析項目をCSV列に対応付けてください。',true);return;}
+    if(new Set(mapped).size!==mapped.length){message('同じCSV列を複数の分析項目に対応付けることはできません。対応を見直してください。',true);return;}
+    const labels=Object.fromEntries(Object.keys(S.fields).map(k=>[k,$('label-'+k).value]));
+    const multi=Object.fromEntries(['frequency','reasons','tasks','support'].map(k=>[k,$('multi-'+k).value==='multi']));
+    state.config=S.configuration({id:$('template').value,labels,multi,unmapped:Object.keys(map).filter(k=>map[k]<0)});
+    state.map=map;state.rows=S.records(state.parsed,map);state.scope='';state.applied=true;state.pending=false;
+    render();show('dashboard');message(`${state.config.title}：${state.rows.length}件を集計しました。未指定・未回答・判定不能は「データ品質」で確認できます。`);
+    $('mapping-status').textContent='集計済み。設定を変更した場合は再度集計してください。';$('mapping-status').classList.remove('pending');
+    log('項目対応・調査設定を適用し集計を完了');focusAt('dashboard-title');
+  });
+  $('export').addEventListener('click',()=>{
+    if(!state.applied)return;
+    const a=aggregate(selected()),rows=[['対象部門','分析項目','選択肢','件数','割合(%)','分母(有効回答者数)','未回答件数','注記','調査テンプレート','対応するCSV列','選択方式']];
+    ['department','usage','frequency','reasons','tasks','support'].forEach(k=>{
+      const d=a[k],extra=[state.config.title,state.map[k]>=0?state.parsed.headers[state.map[k]]:'未指定',state.config.multi[k]?'複数選択':'単一選択'];
+      if(!d.items.length)rows.push([scopeName(),fields()[k].label,'データなし','','',0,state.map[k]<0?'':d.missing,state.map[k]<0?'列未指定・未回答件数は不明':'有効回答なし',...extra]);
+      d.items.forEach(i=>rows.push([scopeName(),fields()[k].label,i.label,i.count,i.percent,d.valid,d.missing,state.config.multi[k]?'複数選択・回答者単位で重複除外':'',...extra]));
+    });
+    const url=URL.createObjectURL(new Blob([S.exportCSV(rows)],{type:'text/csv;charset=utf-8'})),link=el('a');
+    link.href=url;link.download='survey_summary.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);log('現在の集計対象・調査設定のCSVを出力');
+  });
+  $('print').addEventListener('click',()=>{if(state.applied){log('報告の印刷を開始');window.print();}});
+  $('clear').addEventListener('click',()=>{
+    loadVersion++;state.parsed=null;state.rows=[];state.map={};state.scope='';state.applied=false;state.pending=false;state.source='';state.config=S.configuration();$('file').value='';$('file').setAttribute('aria-busy','false');$('template').value='ai';templateInfo();
+    ['mapping','preview','charts','department-details','metrics','department-comparison','findings','actions','followups','department-findings','comments','report-body','quality-body','analysis-context','logs'].forEach(id=>$(id).replaceChildren());
+    $('source-settings').open=true;$('source-caption').textContent='まずは調査の種類とファイルを選びます';$('mapping-panel').hidden=true;$('preview-panel').hidden=true;$('loaded-summary').hidden=true;$('loaded-file').textContent='';$('loaded-count').textContent='';$('file-meta').textContent='ファイル未選択';$('mapping-summary').textContent='';document.querySelectorAll('.scope-controls').forEach(c=>c.replaceChildren());
+    $('mapping-status').textContent='';$('mapping-status').classList.remove('pending');$('preview-info').textContent='';show('import');message('読み込んだデータと調査設定を消去しました。');log('データを消去');focusAt('import-title');
+  });
+  templateInfo();steps();log('アプリ起動。通信・永続保存は行いません');
+})();
+</script></body></html>
